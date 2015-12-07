@@ -6,7 +6,7 @@
     "email",
     "api"
   ],
-  "homepage": "https://bitbucket.org/sendloop/mta-api-php",
+  "homepage": "https://github.com/sendloop/mta-api-php",
   "license": "Apache-2.0",
   "authors": [
     {
