@@ -1,0 +1,7 @@
+site_name: Sendloop MTA PHP SDK
+site_description: Sendloop MTA PHP SDK Documentation
+copyright: ©Octeth, Inc.
+repo_url: https://github.com/sendloop/mta-php-sdk
+site_dir: doc-site
+dev_addr: 127.0.0.1:8000
+theme: readthedocs

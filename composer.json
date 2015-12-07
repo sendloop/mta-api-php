@@ -1,0 +1,28 @@
+{
+  "name": "sendloop/mta-api-php",
+  "type": "library",
+  "description": "API client library for Sendloop MTA email as a service platform",
+  "keywords": [
+    "email",
+    "api"
+  ],
+  "homepage": "https://bitbucket.org/sendloop/mta-api-php",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Sendloop Developers",
+      "email": "hello@sendloop.com",
+      "homepage": "http://sendloop.com",
+      "role": "Developer"
+    }
+  ],
+  "version": "1.0.0",
+  "require": {
+    "php": ">=5.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sendloop\\MTA\\": "src/"
+    }
+  }
+}
