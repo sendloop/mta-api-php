@@ -115,7 +115,7 @@ class Mailer
         curl_setopt($this->curl, CURLOPT_TIMEOUT, 500);
         curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($this->curl, CURLOPT_USERAGENT, "Sendloop-PHP/1.0.0");
-        curl_setopt($this->curl, CURLOPT_URL, "https://sendloop.com/api/v4/mta.json");
+        curl_setopt($this->curl, CURLOPT_URL, "https://app.sendloop.com/api/v4/mta.json");
         curl_setopt($this->curl, CURLOPT_POST, true);
     }
 }
