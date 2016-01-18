@@ -26,4 +26,16 @@ After initializing the mailer, let's create a message:
 
 and send the message to our recipient with mailer:
 
-    $mailer->send("test@recipient.com", $message, array("custom_arg_1" => "my_test_value"));
+    $messageStatusID = $mailer->send("test@recipient.com", $message, ["custom_arg_1" => "my_test_value"]);
+
+or send the message to our recipient with a name:
+
+    $messageStatusID = $mailer->send(["first last name", "test@recipient.com"], $message, ["custom_arg_1" => "my_test_value"]);
+
+Later get the status of the delivery:
+
+    $statusDetails = $mailer->status($messageStatusID);
+
+or get the status of the latest 50 deliveries:
+
+    $statusDetails = $mailer->status();

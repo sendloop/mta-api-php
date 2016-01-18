@@ -15,9 +15,9 @@ class Mailer
     protected $apiKey = "";
 
     /**
-     * @var cURL resource
+     * @var string
      */
-    protected $curl;
+    protected $api = "https://app.sendloop.com/api/v4/";
 
     /**
      * Mailer constructor.
@@ -30,21 +30,28 @@ class Mailer
             throw new InvalidAPIKeyException();
         }
 
-        $this->initCurl();
         $this->apiKey = $apiKey;
     }
 
     /**
-     * @param string $emailAddress Recipient email address
+     * @param string|array $emailAddress Recipient email address or an array (name, emailAddress)
      * @param Message $message Message object
      * @param array $customArgs Custom arguments as an associated array
-     * @return \stdClass
+     * @return string
      * @throws Exception
      * @throws HTTPException
      */
     public function send($emailAddress, Message $message, $customArgs = array())
     {
-        $ch = $this->curl;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 40);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 500);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, "Sendloop-PHP/1.1.0");
+        curl_setopt($ch, CURLOPT_URL, $this->api . "mta.json");
+        curl_setopt($ch, CURLOPT_POST, true);
 
         list($fromName, $fromEmail) = $message->getFrom();
         list($replyToName, $replyToEmail) = $message->getReplyTo();
@@ -54,10 +61,19 @@ class Mailer
             $replyToName = $fromName;
         }
 
+        if (is_array($emailAddress) && count($emailAddress) === 2) {
+            $toName = $emailAddress[0];
+            $toEmail = $emailAddress[1];
+        } else {
+            $toEmail = $emailAddress;
+            $toName = "";
+        }
+
         $params = http_build_query(array(
             "From" => $fromEmail,
             "FromName" => $fromName,
-            "To" => $emailAddress,
+            "To" => $toEmail,
+            "ToName" => $toName,
             "ReplyTo" => $replyToEmail,
             "ReplyToName" => $replyToName,
             "Subject" => $message->getSubject(),
@@ -67,6 +83,56 @@ class Mailer
         ));
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getRequestHeaders());
+
+        $response = curl_exec($ch);
+        if (curl_error($ch)) {
+            throw new HTTPException("API call to Sendloop MTA failed: " . curl_error($ch));
+        }
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($httpCode === 401) {
+            throw new InvalidAPIKeyException();
+        }
+
+        $responseDecoded = json_decode($response);
+        if ($responseDecoded === null) {
+            throw new Exception("We couldn't decode the JSON response from Sendloop API: " . $response);
+        }
+
+        $flooredHttpCode = floor($responseDecoded->HttpCode / 100);
+        if ($flooredHttpCode >= 4) {
+            throw new Exception(isset($responseDecoded->Status) ? $responseDecoded->Status : "");
+        }
+
+        return $responseDecoded->MessageID;
+    }
+
+    /**
+     * @param string $messageStatusID
+     * @return \stdClass
+     * @throws Exception
+     * @throws HTTPException
+     */
+    public function status($messageStatusID = "")
+    {
+        if (empty($messageStatusID)) {
+            $params = "";
+        } else {
+            $params = "?" . http_build_query(array(
+                "id" => $messageStatusID,
+            ));
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 40);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 500);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, "Sendloop-PHP/1.1.0");
+        curl_setopt($ch, CURLOPT_URL, $this->api . "mtamessages.json" . $params);
+
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getRequestHeaders());
 
         $response = curl_exec($ch);
@@ -103,19 +169,4 @@ class Mailer
         );
     }
 
-    /**
-     * Initializes CURL object
-     */
-    protected function initCurl()
-    {
-        $this->curl = curl_init();
-        curl_setopt($this->curl, CURLOPT_HEADER, false);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT, 40);
-        curl_setopt($this->curl, CURLOPT_TIMEOUT, 500);
-        curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($this->curl, CURLOPT_USERAGENT, "Sendloop-PHP/1.0.0");
-        curl_setopt($this->curl, CURLOPT_URL, "https://app.sendloop.com/api/v4/mta.json");
-        curl_setopt($this->curl, CURLOPT_POST, true);
-    }
 }
