@@ -32,6 +32,26 @@ or send the message to our recipient with a name:
 
     $messageStatusID = $mailer->send(["first last name", "test@recipient.com"], $message, ["custom_arg_1" => "my_test_value"]);
 
+or send the message with personalization and options:
+
+    $messageStatusID = $mailer->send(
+        ["first last name", "test@recipient.com"],  // recipient
+        $message,                                   // message
+        ["custom_arg_1" => "my_test_value"],        // custom args
+        [                                           // merge vars
+            "name" => "Recipient name",
+            "account_id" => 1,
+            "purchased" => true
+        ],
+        [                                           // options
+            "TrackOpens" => true,
+            "TrackClicks" => true,
+            "TrackECommerce" => true,
+            "TrackGA" => true,
+            "Tags" => ["welcome_email", "to_user"]
+        ]
+    );
+
 Later get the status of the delivery:
 
     $statusDetails = $mailer->status($messageStatusID);

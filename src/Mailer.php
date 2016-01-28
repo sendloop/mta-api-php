@@ -37,11 +37,13 @@ class Mailer
      * @param string|array $emailAddress Recipient email address or an array (name, emailAddress)
      * @param Message $message Message object
      * @param array $customArgs Custom arguments as an associated array
+     * @param array $mergeVars Merge variables as an associated array
+     * @param array $options Options as an associated array
      * @return string
      * @throws Exception
      * @throws HTTPException
      */
-    public function send($emailAddress, Message $message, $customArgs = array())
+    public function send($emailAddress, Message $message, $customArgs = array(), $mergeVars = array(), $options = array())
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_HEADER, false);
@@ -49,7 +51,7 @@ class Mailer
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 40);
         curl_setopt($ch, CURLOPT_TIMEOUT, 500);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, "Sendloop-PHP/1.1.0");
+        curl_setopt($ch, CURLOPT_USERAGENT, "Sendloop-PHP/1.2.0");
         curl_setopt($ch, CURLOPT_URL, $this->api . "mta.json");
         curl_setopt($ch, CURLOPT_POST, true);
 
@@ -69,6 +71,12 @@ class Mailer
             $toName = "";
         }
 
+        $options["TrackOpens"] = isset($options["TrackOpens"]) && (bool)$options["TrackOpens"] ? "true" : "false";
+        $options["TrackClicks"] = isset($options["TrackClicks"]) && (bool)$options["TrackClicks"] ? "true" : "false";
+        $options["TrackECommerce"] = isset($options["TrackECommerce"]) && (bool)$options["TrackECommerce"] ? "true" : "false";
+        $options["TrackGA"] = isset($options["TrackGA"]) && (bool)$options["TrackGA"] ? "true" : "false";
+        $options["Tags"] = isset($options["Tags"]) && is_array($options["Tags"]) ? $options["Tags"] : array();
+
         $params = http_build_query(array(
             "From" => $fromEmail,
             "FromName" => $fromName,
@@ -79,7 +87,13 @@ class Mailer
             "Subject" => $message->getSubject(),
             "TextBody" => $message->getTextContent(),
             "HTMLBody" => $message->getHTMLContent(),
-            "CustomArgs" => json_encode($customArgs, JSON_FORCE_OBJECT)
+            "MergeVars" => json_encode($mergeVars, JSON_FORCE_OBJECT),
+            "CustomArgs" => json_encode($customArgs, JSON_FORCE_OBJECT),
+            "TrackOpens" => $options["TrackOpens"],
+            "TrackClicks" => $options["TrackClicks"],
+            "TrackECommerce" => $options["TrackECommerce"],
+            "TrackGA" => $options["TrackGA"],
+            "Tags" => json_encode($options["Tags"])
         ));
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
@@ -130,7 +144,7 @@ class Mailer
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 40);
         curl_setopt($ch, CURLOPT_TIMEOUT, 500);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, "Sendloop-PHP/1.1.0");
+        curl_setopt($ch, CURLOPT_USERAGENT, "Sendloop-PHP/1.2.0");
         curl_setopt($ch, CURLOPT_URL, $this->api . "mtamessages.json" . $params);
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getRequestHeaders());
