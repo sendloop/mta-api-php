@@ -76,6 +76,7 @@ class Mailer
         $options["TrackECommerce"] = isset($options["TrackECommerce"]) && (bool)$options["TrackECommerce"] ? "true" : "false";
         $options["TrackGA"] = isset($options["TrackGA"]) && (bool)$options["TrackGA"] ? "true" : "false";
         $options["Tags"] = isset($options["Tags"]) && is_array($options["Tags"]) ? $options["Tags"] : array();
+		$options["EmailID"] = isset($options["EmailID"]) && ((int)$options["EmailID"] > 0) ? $options["EmailID"] : 0;
 
         $params = http_build_query(array(
             "From" => $fromEmail,
@@ -93,7 +94,8 @@ class Mailer
             "TrackClicks" => $options["TrackClicks"],
             "TrackECommerce" => $options["TrackECommerce"],
             "TrackGA" => $options["TrackGA"],
-            "Tags" => json_encode($options["Tags"])
+            "Tags" => json_encode($options["Tags"]),
+            "EmailID" => $options["EmailID"]
         ));
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
