@@ -48,7 +48,8 @@ or send the message with personalization and options:
             "TrackClicks" => true,
             "TrackECommerce" => true,
             "TrackGA" => true,
-            "Tags" => ["welcome_email", "to_user"]
+            "Tags" => ["welcome_email", "to_user"],
+            "EmailID" => 1 // Draft ID
         ]
     );
 
